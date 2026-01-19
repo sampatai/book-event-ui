@@ -1,4 +1,4 @@
-import LayoutPage from "./components/layout-page";
+import LayoutPage from "@/components/Layout-Page";
 
 export function App() {
   return <LayoutPage />;
