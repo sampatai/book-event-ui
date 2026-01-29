@@ -18,8 +18,8 @@ import {
   SquareTerminal,
 } from "lucide-react";
 import { TeamSwitcher } from "./Team-switcher";
-import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
+import { NavMain } from "./Nav-main";
 
 const data = {
   user: {
