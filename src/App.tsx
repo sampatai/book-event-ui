@@ -1,7 +1,8 @@
-import LayoutPage from "@/components/Layout-Page";
+import { RouterProvider } from "@tanstack/react-router";
+import { router } from "@/lib/router";
 
 export function App() {
-  return <LayoutPage />;
+  return <RouterProvider router={router} />;
 }
 
 export default App;
