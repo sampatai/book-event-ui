@@ -1,4 +1,4 @@
-import { createRoute } from "@tanstack/react-router";
+import { Link, createRoute } from "@tanstack/react-router";
 import { rootRoute } from "./__root";
 
 function IndexPage() {
@@ -22,6 +22,15 @@ function IndexPage() {
           <h2 className="font-semibold">Analytics</h2>
           <p className="text-sm text-gray-500">Track performance</p>
         </div>
+      </div>
+
+      <div className="mt-8">
+        <Link
+          to="/users"
+          className="inline-flex items-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted"
+        >
+          Open Users DataTable Example
+        </Link>
       </div>
     </div>
   );

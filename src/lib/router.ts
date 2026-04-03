@@ -2,9 +2,14 @@ import { Router } from "@tanstack/react-router";
 import { rootRoute } from "@/routes/__root";
 import { indexRoute } from "@/routes/index";
 import { settingsRoute } from "@/routes/settings";
+import { usersRoute } from "@/routes/users";
 
 // Create the route tree
-const routeTree = rootRoute.addChildren([indexRoute, settingsRoute]);
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  settingsRoute,
+  usersRoute,
+]);
 
 // Create the router instance
 //This is the same router object that  pass to the <RouterProvider> in  App.tsx file.
