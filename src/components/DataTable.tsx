@@ -1,4 +1,10 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import {
   type ColumnDef,
   type SortingState,
@@ -25,6 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -112,28 +119,28 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        {enableSearch ? (
-          <Input
-            placeholder={searchPlaceholder}
-            value={query.search ?? ""}
-            onChange={(event) =>
-              setPartial({ search: event.target.value, pageNumber: 1 })
-            }
-            className="w-full md:max-w-sm"
-            disabled={isLoading || !enabled}
-          />
-        ) : (
-          <div />
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between w-full">
+        {enableSearch && (
+          <div className="flex-1 w-full min-w-0 md:pr-4">
+            <Input
+              placeholder={searchPlaceholder}
+              value={query.search ?? ""}
+              onChange={(event) =>
+                setPartial({ search: event.target.value, pageNumber: 1 })
+              }
+              className="w-full"
+              disabled={isLoading || !enabled}
+            />
+          </div>
         )}
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant={enabled ? "outline" : "secondary"}
             onClick={() => setPartial({ enabled: !enabled })}
             disabled={isLoading}
           >
-            {enabled ? "Query Enabled" : "Query Disabled"}
+            {enabled ? "Hide" : "Show"}
           </Button>
 
           {enablePageSize ? (
@@ -159,78 +166,103 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : (
-                      <button
-                        type="button"
-                        className={
-                          header.column.getCanSort()
-                            ? "inline-flex items-center gap-1"
-                            : ""
-                        }
-                        onClick={header.column.getToggleSortingHandler()}
-                        disabled={
-                          !header.column.getCanSort() || isLoading || !enabled
-                        }
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                      </button>
-                    )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  Loading...
-                </TableCell>
-              </TableRow>
-            ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
+      {enabled && (
+        <div className="rounded-md border border-border overflow-hidden">
+          <Table className="w-full border-collapse">
+            <TableHeader className="bg-muted/50">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className="border border-border p-2 align-middle"
+                    >
+                      {header.isPlaceholder ? null : (
+                        <button
+                          type="button"
+                          className={cn(
+                            "flex group w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors",
+                            header.column.getCanSort()
+                              ? "hover:bg-muted hover:text-accent-foreground cursor-pointer"
+                              : "cursor-default cursor-auto text-muted-foreground",
+                            header.column.getIsSorted() &&
+                              "bg-accent/50 text-accent-foreground font-semibold shadow-sm",
+                          )}
+                          onClick={header.column.getToggleSortingHandler()}
+                          disabled={
+                            !header.column.getCanSort() || isLoading || !enabled
+                          }
+                        >
+                          <span className="truncate text-left flex-1">
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                          </span>
+                          {header.column.getCanSort() && (
+                            <span className="flex items-center shrink-0 ml-1">
+                              {header.column.getIsSorted() === "asc" ? (
+                                <ArrowUp className="size-3.5" />
+                              ) : header.column.getIsSorted() === "desc" ? (
+                                <ArrowDown className="size-3.5" />
+                              ) : (
+                                <ArrowUpDown className="size-3.5 opacity-40 group-hover:opacity-100" />
+                              )}
+                            </span>
+                          )}
+                        </button>
                       )}
-                    </TableCell>
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  {emptyText}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center border border-border"
+                  >
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className="hover:bg-muted/50 transition-colors"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className="border border-border p-4 align-middle"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center border border-border text-muted-foreground"
+                  >
+                    {emptyText}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
-      {enablePagination ? (
+      {enabled && enablePagination ? (
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div className="text-muted-foreground text-sm">
             Page {pageNumber} of {totalPages} • Total {totalRecords}

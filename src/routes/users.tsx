@@ -57,24 +57,28 @@ function UsersPage() {
   });
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">Users DataTable Example</h1>
-        <p className="text-muted-foreground text-sm">
-          Example implementation using shadcn DataTable + TanStack Query +
-          ListQueryParams.
+    <div className="flex flex-col gap-6 w-full p-2 h-full">
+      <div className="flex flex-col gap-1.5 pb-4 border-b">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          Users Management
+        </h1>
+        <p className="text-muted-foreground text-base">
+          View, manage, and search your platform users. Demo built with shadcn
+          DataTable & TanStack Query.
         </p>
       </div>
 
-      <DataTable
-        columns={columns}
-        listData={usersQuery.data}
-        query={query}
-        onQueryChange={setQuery}
-        isLoading={usersQuery.isFetching}
-        searchPlaceholder="Search users by name or email"
-        pageSizeOptions={[10, 20, 50, 100]}
-      />
+      <div className="flex-1 w-full bg-card rounded-xl border shadow-sm p-4 h-full">
+        <DataTable
+          columns={columns}
+          listData={usersQuery.data}
+          query={query}
+          onQueryChange={setQuery}
+          isLoading={usersQuery.isFetching}
+          searchPlaceholder="Search users by name or email"
+          pageSizeOptions={[10, 20, 50, 100]}
+        />
+      </div>
     </div>
   );
 }

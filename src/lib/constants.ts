@@ -2,11 +2,10 @@
  * API endpoint constants
  */
 export const API_ENDPOINTS = {
-  NAVIGATION: "/menu",
-  MENU: "/menu",
+  NAVIGATION: "/navigation",
+  PANDIT: "/menu",
   USERS: "/users",
   BOOKINGS: "/bookings",
-  TEAMS: "/teams",
   SETTINGS: "/settings",
   AUTH: "/auth",
 } as const;
