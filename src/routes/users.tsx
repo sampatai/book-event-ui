@@ -2,6 +2,14 @@ import { createRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/DataTable";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { rootRoute } from "./__root";
 import { useListQueryParams } from "@/hooks/useListQueryParams";
 import { usersApi, type ListBase, type User } from "@/lib/api";
@@ -74,6 +82,73 @@ function UsersPage() {
           listData={usersQuery.data}
           query={query}
           onQueryChange={setQuery}
+          renderFilters={({ query: currentQuery, setPartial, isLoading }) => {
+            const currentFilters = currentQuery.filters ?? {};
+            const status =
+              typeof currentFilters.status === "string"
+                ? currentFilters.status
+                : "all";
+            const minId =
+              typeof currentFilters.minId === "number" ||
+              typeof currentFilters.minId === "string"
+                ? String(currentFilters.minId)
+                : "";
+
+            return (
+              <>
+                <Select
+                  value={status}
+                  onValueChange={(value) => {
+                    const nextFilters = { ...currentFilters };
+                    if (value === "all") {
+                      delete nextFilters.status;
+                    } else {
+                      nextFilters.status = value;
+                    }
+
+                    setPartial({
+                      filters: nextFilters,
+                      pageNumber: 1,
+                    });
+                  }}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Input
+                  type="number"
+                  min={1}
+                  value={minId}
+                  placeholder="Min ID"
+                  className="w-28"
+                  onChange={(event) => {
+                    const rawValue = event.target.value;
+                    const nextFilters = { ...currentFilters };
+
+                    if (!rawValue) {
+                      delete nextFilters.minId;
+                    } else {
+                      nextFilters.minId = Number(rawValue);
+                    }
+
+                    setPartial({
+                      filters: nextFilters,
+                      pageNumber: 1,
+                    });
+                  }}
+                  disabled={isLoading}
+                />
+              </>
+            );
+          }}
           isLoading={usersQuery.isFetching}
           searchPlaceholder="Search users by name or email"
           pageSizeOptions={[10, 20, 50, 100]}

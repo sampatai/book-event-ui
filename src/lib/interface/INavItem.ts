@@ -1,14 +1,14 @@
-export interface NavItem {
+export interface INavItem {
   title: string;
   url: string;
   icon?: string;
   isActive?: boolean;
   requiredPermission?: string;
   isAllowed: boolean;
-  items?: NavItem[];
+  items?: INavItem[];
 }
-export interface MenuResponse {
-  menuItems: NavItem[];
+export interface IMenuResponse {
+  menuItems: INavItem[];
   user?: {
     name: string;
     email: string;

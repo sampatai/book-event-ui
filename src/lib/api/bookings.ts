@@ -22,12 +22,18 @@ export const bookingsApi = {
       API_ENDPOINTS.BOOKINGS,
       { params: toListRequestParams(params) },
     );
-    return response.data.data;
+    if (!response.data.value) {
+      throw new Error("Bookings list response is missing value payload");
+    }
+    return response.data.value;
   },
-  getById: async (id: ApiId): Promise<ApiItemResponse<Booking>> => {
+  getById: async (id: ApiId): Promise<Booking> => {
     const response = await apiClient.get<ApiItemResponse<Booking>>(
       `${API_ENDPOINTS.BOOKINGS}/${id}`,
     );
-    return response.data;
+    if (!response.data.value) {
+      throw new Error("Booking response is missing value payload");
+    }
+    return response.data.value;
   },
 };

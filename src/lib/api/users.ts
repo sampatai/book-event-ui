@@ -21,12 +21,18 @@ export const usersApi = {
       API_ENDPOINTS.USERS,
       { params: toListRequestParams(params) },
     );
-    return response.data.data;
+    if (!response.data.value) {
+      throw new Error("Users list response is missing value payload");
+    }
+    return response.data.value;
   },
-  getById: async (id: ApiId): Promise<ApiItemResponse<User>> => {
+  getById: async (id: ApiId): Promise<User> => {
     const response = await apiClient.get<ApiItemResponse<User>>(
       `${API_ENDPOINTS.USERS}/${id}`,
     );
-    return response.data;
+    if (!response.data.value) {
+      throw new Error("User response is missing value payload");
+    }
+    return response.data.value;
   },
 };

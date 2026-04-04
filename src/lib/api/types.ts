@@ -5,6 +5,12 @@ export interface ListBase<T> {
   totalRecords: number;
 }
 
+export interface ApiError {
+  code: string;
+  description: string;
+  type: number;
+}
+
 export interface ListQueryParams {
   // Controls TanStack Query execution on the frontend only.
   // This value is not sent to backend APIs.
@@ -18,15 +24,19 @@ export interface ListQueryParams {
   filters?: Record<string, string | number | boolean | null | undefined>;
 }
 
-export interface ApiListResponse<T> {
-  success: boolean;
-  data: ListBase<T>;
+export interface ApiResponseBase {
+  isSuccess: boolean;
+  isFailure: boolean;
+  error: ApiError | null;
 }
 
-export interface ApiItemResponse<T> {
-  success: boolean;
-  data: T;
+export interface ApiResponse<T> extends ApiResponseBase {
+  value?: T;
 }
+
+export type ApiListResponse<T> = ApiResponse<ListBase<T>>;
+export type ApiItemResponse<T> = ApiResponse<T>;
+export type ApiActionResponse = ApiResponseBase;
 
 export function toListRequestParams(
   params?: ListQueryParams,

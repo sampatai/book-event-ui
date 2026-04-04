@@ -8,10 +8,13 @@ import {
 import {
   type ColumnDef,
   type SortingState,
+  type Updater,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { useEffect, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 
 import type { ListBase, ListQueryParams } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -38,6 +41,11 @@ export interface DataTableProps<TData, TValue> {
   listData?: ListBase<TData>;
   query: ListQueryParams;
   onQueryChange: (query: ListQueryParams) => void;
+  renderFilters?: (context: {
+    query: ListQueryParams;
+    setPartial: (patch: Partial<ListQueryParams>) => void;
+    isLoading: boolean;
+  }) => React.ReactNode;
   pageSizeOptions?: number[];
   isLoading?: boolean;
   emptyText?: string;
@@ -54,6 +62,7 @@ export function DataTable<TData, TValue>({
   listData,
   query,
   onQueryChange,
+  renderFilters,
   pageSizeOptions = defaultPageSizeOptions,
   isLoading = false,
   emptyText = "No results.",
@@ -64,10 +73,10 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const records = listData?.records ?? [];
   const totalRecords = listData?.totalRecords ?? 0;
+  const [searchInput, setSearchInput] = useState(query.search ?? "");
 
   const pageNumber = query.pageNumber ?? 1;
   const pageSize = query.pageSize ?? pageSizeOptions[0] ?? 10;
-  const enabled = query.enabled ?? true;
 
   const sortingState: SortingState = query.sortBy
     ? [{ id: query.sortBy, desc: query.sortDirection === "desc" }]
@@ -80,6 +89,17 @@ export function DataTable<TData, TValue>({
   const setPartial = (patch: Partial<ListQueryParams>) => {
     onQueryChange({ ...query, ...patch });
   };
+
+  const debouncedSearchChange = useDebouncedCallback(
+    (nextSearch: string, currentQuery: ListQueryParams) => {
+      onQueryChange({ ...currentQuery, search: nextSearch, pageNumber: 1 });
+    },
+    400,
+  );
+
+  useEffect(() => {
+    setSearchInput(query.search ?? "");
+  }, [query.search]);
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -96,7 +116,7 @@ export function DataTable<TData, TValue>({
     manualPagination: true,
     manualSorting: true,
     pageCount: totalPages,
-    onSortingChange: (updater) => {
+    onSortingChange: (updater: Updater<SortingState>) => {
       const nextSorting =
         typeof updater === "function" ? updater(sortingState) : updater;
       const first = nextSorting[0];
@@ -124,24 +144,29 @@ export function DataTable<TData, TValue>({
           <div className="flex-1 w-full min-w-0 md:pr-4">
             <Input
               placeholder={searchPlaceholder}
-              value={query.search ?? ""}
-              onChange={(event) =>
-                setPartial({ search: event.target.value, pageNumber: 1 })
-              }
+              value={searchInput}
+              onChange={(event) => {
+                const nextSearch = event.target.value;
+                setSearchInput(nextSearch);
+
+                if (!enableSearch) {
+                  return;
+                }
+
+                if (nextSearch === (query.search ?? "")) {
+                  return;
+                }
+
+                debouncedSearchChange(nextSearch, query);
+              }}
               className="w-full"
-              disabled={isLoading || !enabled}
+              disabled={isLoading}
             />
           </div>
         )}
 
         <div className="flex items-center gap-2 shrink-0">
-          <Button
-            variant={enabled ? "outline" : "secondary"}
-            onClick={() => setPartial({ enabled: !enabled })}
-            disabled={isLoading}
-          >
-            {enabled ? "Hide" : "Show"}
-          </Button>
+          {renderFilters?.({ query, setPartial, isLoading })}
 
           {enablePageSize ? (
             <Select
@@ -149,7 +174,7 @@ export function DataTable<TData, TValue>({
               onValueChange={(value) =>
                 setPartial({ pageSize: Number(value), pageNumber: 1 })
               }
-              disabled={isLoading || !enabled}
+              disabled={isLoading}
             >
               <SelectTrigger className="w-36">
                 <SelectValue placeholder="Page size" />
@@ -166,103 +191,99 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      {enabled && (
-        <div className="rounded-md border border-border overflow-hidden">
-          <Table className="w-full border-collapse">
-            <TableHeader className="bg-muted/50">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className="border border-border p-2 align-middle"
-                    >
-                      {header.isPlaceholder ? null : (
-                        <button
-                          type="button"
-                          className={cn(
-                            "flex group w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors",
-                            header.column.getCanSort()
-                              ? "hover:bg-muted hover:text-accent-foreground cursor-pointer"
-                              : "cursor-default cursor-auto text-muted-foreground",
-                            header.column.getIsSorted() &&
-                              "bg-accent/50 text-accent-foreground font-semibold shadow-sm",
+      <div className="rounded-md border border-border overflow-hidden">
+        <Table className="w-full border-collapse">
+          <TableHeader className="bg-muted/50">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className="border border-border p-2 align-middle"
+                  >
+                    {header.isPlaceholder ? null : (
+                      <button
+                        type="button"
+                        className={cn(
+                          "flex group w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors",
+                          header.column.getCanSort()
+                            ? "hover:bg-muted hover:text-accent-foreground cursor-pointer"
+                            : "cursor-default cursor-auto text-muted-foreground",
+                          header.column.getIsSorted() &&
+                            "bg-accent/50 text-accent-foreground font-semibold shadow-sm",
+                        )}
+                        onClick={header.column.getToggleSortingHandler()}
+                        disabled={!header.column.getCanSort() || isLoading}
+                      >
+                        <span className="truncate text-left flex-1">
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
                           )}
-                          onClick={header.column.getToggleSortingHandler()}
-                          disabled={
-                            !header.column.getCanSort() || isLoading || !enabled
-                          }
-                        >
-                          <span className="truncate text-left flex-1">
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
+                        </span>
+                        {header.column.getCanSort() && (
+                          <span className="flex items-center shrink-0 ml-1">
+                            {header.column.getIsSorted() === "asc" ? (
+                              <ArrowUp className="size-3.5" />
+                            ) : header.column.getIsSorted() === "desc" ? (
+                              <ArrowDown className="size-3.5" />
+                            ) : (
+                              <ArrowUpDown className="size-3.5 opacity-40 group-hover:opacity-100" />
                             )}
                           </span>
-                          {header.column.getCanSort() && (
-                            <span className="flex items-center shrink-0 ml-1">
-                              {header.column.getIsSorted() === "asc" ? (
-                                <ArrowUp className="size-3.5" />
-                              ) : header.column.getIsSorted() === "desc" ? (
-                                <ArrowDown className="size-3.5" />
-                              ) : (
-                                <ArrowUpDown className="size-3.5 opacity-40 group-hover:opacity-100" />
-                              )}
-                            </span>
-                          )}
-                        </button>
+                        )}
+                      </button>
+                    )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center border border-border"
+                >
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className="hover:bg-muted/50 transition-colors"
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className="border border-border p-4 align-middle"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
                       )}
-                    </TableHead>
+                    </TableCell>
                   ))}
                 </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center border border-border"
-                  >
-                    Loading...
-                  </TableCell>
-                </TableRow>
-              ) : table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className="hover:bg-muted/50 transition-colors"
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className="border border-border p-4 align-middle"
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center border border-border text-muted-foreground"
-                  >
-                    {emptyText}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center border border-border text-muted-foreground"
+                >
+                  {emptyText}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-      {enabled && enablePagination ? (
+      {enablePagination ? (
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div className="text-muted-foreground text-sm">
             Page {pageNumber} of {totalPages} • Total {totalRecords}
@@ -274,7 +295,7 @@ export function DataTable<TData, TValue>({
               onClick={() =>
                 setPartial({ pageNumber: Math.max(1, pageNumber - 1) })
               }
-              disabled={isLoading || !enabled || !canGoPrevious}
+              disabled={isLoading || !canGoPrevious}
             >
               <ChevronLeft className="mr-1 size-4" />
               Prev
@@ -293,13 +314,13 @@ export function DataTable<TData, TValue>({
                 setPartial({ pageNumber: Math.min(nextPage, totalPages) });
               }}
               className="w-24 text-center"
-              disabled={isLoading || !enabled}
+              disabled={isLoading}
             />
 
             <Button
               variant="outline"
               onClick={() => setPartial({ pageNumber: pageNumber + 1 })}
-              disabled={isLoading || !enabled || !canGoNext}
+              disabled={isLoading || !canGoNext}
             >
               Next
               <ChevronRight className="ml-1 size-4" />
