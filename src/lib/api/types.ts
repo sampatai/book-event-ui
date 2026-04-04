@@ -11,7 +11,12 @@ export interface ApiError {
   type: number;
 }
 
-export interface ListQueryParams {
+export type FilterPrimitive = string | number | boolean | null | undefined;
+export type ListQueryFilters = Record<string, FilterPrimitive>;
+
+export interface ListQueryParams<
+  TFilters extends ListQueryFilters = ListQueryFilters,
+> {
   // Controls TanStack Query execution on the frontend only.
   // This value is not sent to backend APIs.
   enabled?: boolean;
@@ -21,7 +26,7 @@ export interface ListQueryParams {
   sortBy?: string;
   sortDirection?: "asc" | "desc";
   // Generic field filters, e.g. { status: "active", role: "admin" }
-  filters?: Record<string, string | number | boolean | null | undefined>;
+  filters?: TFilters;
 }
 
 export interface ApiResponseBase {

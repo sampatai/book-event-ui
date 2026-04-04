@@ -36,14 +36,22 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-export interface DataTableProps<TData, TValue> {
+type QueryPatch<TQuery extends ListQueryParams> =
+  | Partial<ListQueryParams>
+  | Partial<TQuery>;
+
+export interface DataTableProps<
+  TData,
+  TValue,
+  TQuery extends ListQueryParams = ListQueryParams,
+> {
   columns: ColumnDef<TData, TValue>[];
   listData?: ListBase<TData>;
-  query: ListQueryParams;
-  onQueryChange: (query: ListQueryParams) => void;
+  query: TQuery;
+  onQueryChange: (query: TQuery) => void;
   renderFilters?: (context: {
-    query: ListQueryParams;
-    setPartial: (patch: Partial<ListQueryParams>) => void;
+    query: TQuery;
+    setPartial: (patch: QueryPatch<TQuery>) => void;
     isLoading: boolean;
   }) => React.ReactNode;
   pageSizeOptions?: number[];
@@ -57,7 +65,11 @@ export interface DataTableProps<TData, TValue> {
 
 const defaultPageSizeOptions = [10, 20, 50, 100];
 
-export function DataTable<TData, TValue>({
+export function DataTable<
+  TData,
+  TValue,
+  TQuery extends ListQueryParams = ListQueryParams,
+>({
   columns,
   listData,
   query,
@@ -70,7 +82,7 @@ export function DataTable<TData, TValue>({
   enableSearch = true,
   enablePageSize = true,
   enablePagination = true,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData, TValue, TQuery>) {
   const records = listData?.records ?? [];
   const totalRecords = listData?.totalRecords ?? 0;
   const [searchInput, setSearchInput] = useState(query.search ?? "");
@@ -86,12 +98,12 @@ export function DataTable<TData, TValue>({
   const canGoPrevious = pageNumber > 1;
   const canGoNext = pageNumber < totalPages;
 
-  const setPartial = (patch: Partial<ListQueryParams>) => {
-    onQueryChange({ ...query, ...patch });
+  const setPartial = (patch: QueryPatch<TQuery>) => {
+    onQueryChange({ ...query, ...patch } as TQuery);
   };
 
   const debouncedSearchChange = useDebouncedCallback(
-    (nextSearch: string, currentQuery: ListQueryParams) => {
+    (nextSearch: string, currentQuery: TQuery) => {
       onQueryChange({ ...currentQuery, search: nextSearch, pageNumber: 1 });
     },
     400,

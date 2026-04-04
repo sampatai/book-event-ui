@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import type { ListQueryParams } from "@/lib/api";
 
-export interface UseListQueryParamsOptions {
-  initial?: ListQueryParams;
+export interface UseListQueryParamsOptions<TQuery extends ListQueryParams> {
+  initial?: TQuery;
 }
 
 const DEFAULT_QUERY: ListQueryParams = {
@@ -12,11 +12,13 @@ const DEFAULT_QUERY: ListQueryParams = {
   search: "",
 };
 
-export function useListQueryParams(options?: UseListQueryParamsOptions) {
-  const [query, setQuery] = useState<ListQueryParams>({
+export function useListQueryParams<
+  TQuery extends ListQueryParams = ListQueryParams,
+>(options?: UseListQueryParamsOptions<TQuery>) {
+  const [query, setQuery] = useState<TQuery>({
     ...DEFAULT_QUERY,
     ...options?.initial,
-  });
+  } as TQuery);
 
   const queryEnabled = query.enabled ?? true;
 
@@ -47,9 +49,7 @@ export function useListQueryParams(options?: UseListQueryParamsOptions) {
     setQuery((prev) => ({ ...prev, enabled }));
   };
 
-  const setFilters = (
-    filters: Record<string, string | number | boolean | null | undefined>,
-  ) => {
+  const setFilters = (filters: NonNullable<TQuery["filters"]>) => {
     setQuery((prev) => ({ ...prev, filters, pageNumber: 1 }));
   };
 
