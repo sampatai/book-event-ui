@@ -1,4 +1,9 @@
-import { Outlet, createRootRoute } from "@tanstack/react-router";
+import {
+  Outlet,
+  createRootRoute,
+  useRouterState,
+} from "@tanstack/react-router";
+import { Fragment } from "react";
 import { AppSidebar } from "@/components/App-sidebar";
 import {
   Breadcrumb,
@@ -9,6 +14,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
+import { getBreadcrumbOptions } from "@/lib/breadcrumb-options";
 import {
   SidebarInset,
   SidebarProvider,
@@ -16,6 +22,11 @@ import {
 } from "@/components/ui/sidebar";
 
 function RootLayout() {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+  const breadcrumbOptions = getBreadcrumbOptions(pathname);
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -29,13 +40,33 @@ function RootLayout() {
             />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/">Dashboard</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Events</BreadcrumbPage>
-                </BreadcrumbItem>
+                {breadcrumbOptions.map((item, index) => {
+                  const itemClassName = item.hideOnMobile
+                    ? "hidden md:block"
+                    : undefined;
+                  const key = `${item.label}-${index}`;
+
+                  return (
+                    <Fragment key={key}>
+                      <BreadcrumbItem className={itemClassName}>
+                        {item.isCurrent || !item.href ? (
+                          <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                        ) : (
+                          <BreadcrumbLink href={item.href}>
+                            {item.label}
+                          </BreadcrumbLink>
+                        )}
+                      </BreadcrumbItem>
+                      {index < breadcrumbOptions.length - 1 ? (
+                        <BreadcrumbSeparator
+                          className={
+                            item.hideOnMobile ? "hidden md:block" : undefined
+                          }
+                        />
+                      ) : null}
+                    </Fragment>
+                  );
+                })}
               </BreadcrumbList>
             </Breadcrumb>
           </div>

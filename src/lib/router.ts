@@ -3,12 +3,14 @@ import { rootRoute } from "@/routes/__root";
 import { indexRoute } from "@/routes/index";
 import { settingsRoute } from "@/routes/settings";
 import { usersRoute } from "@/routes/users";
+import { panditsRoute } from "@/routes/pandit";
 
 // Create the route tree
 const routeTree = rootRoute.addChildren([
   indexRoute,
   settingsRoute,
   usersRoute,
+  panditsRoute,
 ]);
 
 // Create the router instance

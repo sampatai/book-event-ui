@@ -61,6 +61,7 @@ export interface DataTableProps<
   enableSearch?: boolean;
   enablePageSize?: boolean;
   enablePagination?: boolean;
+  enableClearSorting?: boolean;
 }
 
 const defaultPageSizeOptions = [10, 20, 50, 100];
@@ -82,6 +83,7 @@ export function DataTable<
   enableSearch = true,
   enablePageSize = true,
   enablePagination = true,
+  enableClearSorting = true,
 }: DataTableProps<TData, TValue, TQuery>) {
   const records = listData?.records ?? [];
   const totalRecords = listData?.totalRecords ?? 0;
@@ -97,6 +99,7 @@ export function DataTable<
   const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
   const canGoPrevious = pageNumber > 1;
   const canGoNext = pageNumber < totalPages;
+  const hasSorting = Boolean(query.sortBy);
 
   const setPartial = (patch: QueryPatch<TQuery>) => {
     onQueryChange({ ...query, ...patch } as TQuery);
@@ -179,6 +182,23 @@ export function DataTable<
 
         <div className="flex items-center gap-2 shrink-0">
           {renderFilters?.({ query, setPartial, isLoading })}
+
+          {enableClearSorting ? (
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() =>
+                setPartial({
+                  sortBy: undefined,
+                  sortDirection: undefined,
+                  pageNumber: 1,
+                })
+              }
+              disabled={isLoading || !hasSorting}
+            >
+              Clear sorting
+            </Button>
+          ) : null}
 
           {enablePageSize ? (
             <Select
