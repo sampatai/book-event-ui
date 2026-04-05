@@ -19,7 +19,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 const columns: ColumnDef<IListPanditResponse>[] = [
   {
     accessorKey: "fullName",
-    header: "FullName",
+    header: "Fullname",
     enableSorting: true,
   },
   {
