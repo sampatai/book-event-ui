@@ -7,7 +7,7 @@ const oidcConfig = {
   authority: import.meta.env.VITE_OIDC_AUTHORITY,
   client_id: import.meta.env.VITE_OIDC_CLIENT_ID,
   redirect_uri: import.meta.env.VITE_OIDC_REDIRECT_URI,
-  scope: import.meta.env.VITE_OIDC_SCOPE || "openid profile react-app",
+  scope: import.meta.env.VITE_OIDC_SCOPE,
   response_type: "code",
   onSigninCallback: (user: User | void) => {
     globalThis.window.history.replaceState({}, document.title, "/");
