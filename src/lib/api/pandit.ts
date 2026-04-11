@@ -20,9 +20,7 @@ export const panditApi = {
       API_ENDPOINTS.PANDITS,
       { params: toListRequestParams(params) },
     );
-    if (response.data.isFailure) {
-      throw new Error("faild to load the list");
-    }
+
     return response.data;
   },
   async getById(id: string): Promise<IPanditResponse> {

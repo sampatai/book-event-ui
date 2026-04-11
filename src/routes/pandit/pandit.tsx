@@ -7,14 +7,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { createRoute } from "@tanstack/react-router";
-import { rootRoute } from "./__root";
+import { createRoute, Link } from "@tanstack/react-router";
+import { rootRoute } from "../__root";
 import { useListQueryParams } from "@/hooks/useListQueryParams";
-import type { ListQueryParams } from "../lib/api";
+import type { ListQueryParams } from "../../lib/api";
 import { usePandits } from "@/hooks/pandit/usePandit";
 import { DataTable } from "@/components/DataTable";
 import type { IListPanditResponse } from "@/lib/interface/IPandit";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { TableActions } from "@/components/TableActions";
 
 const columns: ColumnDef<IListPanditResponse>[] = [
   {
@@ -42,6 +45,24 @@ const columns: ColumnDef<IListPanditResponse>[] = [
     header: "City",
     enableSorting: true,
   },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => {
+      const pandit = row.original;
+      return (
+        <TableActions
+          onView={() => console.log("View", pandit.panditId)}
+          editUrl={`/pandit/edit/${pandit.panditId}`}
+          onDelete={() => {
+            console.log("Delete", pandit.panditId);
+            // Implementation for delete API call
+          }}
+          deleteConfirmMessage="Are you sure you want to delete this pandit?"
+        />
+      );
+    },
+  },
 ];
 export function Pandit() {
   const { query, setQuery } = useListQueryParams<ListQueryParams>({
@@ -54,14 +75,22 @@ export function Pandit() {
   const { data, isFetching } = usePandits(query);
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Pandit</CardTitle>
-        <CardDescription>List of all listed pandit list</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Pandit</CardTitle>
+          <CardDescription>List of all listed pandit list</CardDescription>
+        </div>
+        <Button asChild>
+          <Link to="/pandit/create">
+            <Plus className="mr-2 size-4" />
+            Add Pandit
+          </Link>
+        </Button>
       </CardHeader>
       <CardContent>
         <DataTable
           columns={columns}
-          listData={data?.value}
+          listData={data}
           query={query}
           onQueryChange={setQuery}
           isLoading={isFetching}

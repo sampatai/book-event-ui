@@ -1,5 +1,6 @@
 import {
   Outlet,
+  Link,
   createRootRoute,
   useRouterState,
 } from "@tanstack/react-router";
@@ -52,8 +53,8 @@ function RootLayout() {
                         {item.isCurrent || !item.href ? (
                           <BreadcrumbPage>{item.label}</BreadcrumbPage>
                         ) : (
-                          <BreadcrumbLink href={item.href}>
-                            {item.label}
+                          <BreadcrumbLink asChild>
+                            <Link to={item.href}>{item.label}</Link>
                           </BreadcrumbLink>
                         )}
                       </BreadcrumbItem>

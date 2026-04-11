@@ -3,6 +3,7 @@ export type ApiId = string | number;
 export interface ListBase<T> {
   records: T[];
   totalRecords: number;
+  pageNumber: number;
 }
 
 export interface ApiError {
@@ -39,7 +40,7 @@ export interface ApiResponse<T> extends ApiResponseBase {
   value?: T;
 }
 
-export type ApiListResponse<T> = ApiResponse<ListBase<T>>;
+export type ApiListResponse<T> = ListBase<T>;
 export type ApiItemResponse<T> = ApiResponse<T>;
 export type ApiActionResponse = ApiResponseBase;
 

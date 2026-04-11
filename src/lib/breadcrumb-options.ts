@@ -22,10 +22,28 @@ const BREADCRUMB_OPTIONS: Record<string, BreadcrumbOptionItem[]> = {
 };
 
 export function getBreadcrumbOptions(pathname: string): BreadcrumbOptionItem[] {
-  return (
-    BREADCRUMB_OPTIONS[pathname] ?? [
+  if (BREADCRUMB_OPTIONS[pathname]) {
+    return BREADCRUMB_OPTIONS[pathname];
+  }
+
+  if (pathname === "/pandit/create") {
+    return [
       { label: "Dashboard", href: "/", hideOnMobile: true },
-      { label: "Page", isCurrent: true },
-    ]
-  );
+      { label: "Pandits", href: "/pandit" },
+      { label: "Create", isCurrent: true },
+    ];
+  }
+
+  if (pathname.startsWith("/pandit/edit/")) {
+    return [
+      { label: "Dashboard", href: "/", hideOnMobile: true },
+      { label: "Pandits", href: "/pandit" },
+      { label: "Edit", isCurrent: true },
+    ];
+  }
+
+  return [
+    { label: "Dashboard", href: "/", hideOnMobile: true },
+    { label: "Page", isCurrent: true },
+  ];
 }
