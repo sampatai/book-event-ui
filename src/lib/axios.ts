@@ -19,20 +19,28 @@ apiClient.interceptors.request.use(
     const token = TokenService.getLocalAccessToken();
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Including X-CSRF token from original sample based on OIDC setup
+      config.headers["X-CSRF"] = "1";
     }
     return config;
   },
   (error) => Promise.reject(error),
 );
 
-// Response interceptor placeholder for future refresh-token handling
+// Response interceptor
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // If implementing token refresh later, handle 401 here:
-    // - attempt refresh using TokenService.getLocalRefreshToken()
-    // - update TokenService.updateLocalAccessToken(newToken)
-    // - retry original request
+    // Handle 401 Unauthorized responses securely
+    if (error.response && error.response.status === 401) {
+      TokenService.removeUser();
+
+      // Optionally trigger a page reload which will lead to the authentication
+      // guard in App.tsx triggering a signinRedirect if needed.
+      if (typeof globalThis !== "undefined" && globalThis.window) {
+        globalThis.window.location.reload();
+      }
+    }
 
     // For now just reject and allow callers to handle errors
     return Promise.reject(error);
