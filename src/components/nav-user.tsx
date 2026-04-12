@@ -1,5 +1,6 @@
 "use client";
 import { ChevronsUpDown, LogOut } from "lucide-react";
+import { useAuth } from "react-oidc-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -21,8 +22,10 @@ type userProps = {
   email: string;
   avatar: string;
 };
-export function NavUser({ user }: { user?: userProps }) {
+export function NavUser({ user }: Readonly<{ user?: userProps }>) {
   const { isMobile } = useSidebar();
+  const auth = useAuth();
+
   if (!user) {
     return (
       <SidebarMenu>
@@ -72,7 +75,7 @@ export function NavUser({ user }: { user?: userProps }) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => auth.signoutRedirect()}>
               <LogOut />
               Log out
             </DropdownMenuItem>

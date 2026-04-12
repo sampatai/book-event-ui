@@ -1,11 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "react-oidc-context";
-import { Loader2, ShieldCheck, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -21,6 +20,23 @@ export function AuthGuard({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const auth = useAuth();
+
+  useEffect(() => {
+    if (
+      !auth.isLoading &&
+      !auth.isAuthenticated &&
+      !auth.error &&
+      !auth.activeNavigator
+    ) {
+      auth.signinRedirect();
+    }
+  }, [
+    auth,
+    auth.isLoading,
+    auth.isAuthenticated,
+    auth.error,
+    auth.activeNavigator,
+  ]);
 
   switch (auth.activeNavigator) {
     case "signinSilent":
@@ -86,31 +102,10 @@ export function AuthGuard({
   if (!auth.isAuthenticated) {
     return (
       <CenterLayout>
-        <Card className="w-full max-w-md shadow-lg">
-          <CardHeader className="flex flex-col items-center pb-2 text-center">
-            <div className="mb-4 rounded-full bg-primary/10 p-4">
-              <ShieldCheck className="h-10 w-10 text-primary" />
-            </div>
-            <CardTitle className="text-2xl font-bold tracking-tight">
-              Welcome Back
-            </CardTitle>
-            <CardDescription className="text-base">
-              You need to log in to access your workspace.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pb-6 pt-4 text-center text-sm text-muted-foreground">
-            Securely log in to manage your events, bookings, and resources.
-          </CardContent>
-          <CardFooter>
-            <Button
-              className="w-full"
-              size="lg"
-              onClick={() => auth.signinRedirect()}
-            >
-              Log In with SSO
-            </Button>
-          </CardFooter>
-        </Card>
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-lg font-medium">Redirecting to login...</p>
+        </div>
       </CenterLayout>
     );
   }

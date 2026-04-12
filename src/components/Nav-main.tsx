@@ -22,11 +22,11 @@ export function NavMain({
   items,
   label = "",
   isLoading = false,
-}: {
+}: Readonly<{
   items: NavItemProps[];
   label?: string;
   isLoading?: boolean;
-}) {
+}>) {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
